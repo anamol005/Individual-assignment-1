@@ -601,3 +601,84 @@ main {
     font-size: 1.25rem;
   }
 }
+
+/* ---------- Contact ---------- */
+
+.contact-section {
+  margin-top: 2.5rem;
+  padding: 2rem 0 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.contact-header {
+  margin-bottom: 1.8rem;
+  max-width: 650px;
+}
+
+.contact-header h2 {
+  margin: 0.25rem 0 0.6rem;
+  color: var(--navy);
+  font-size: 1.9rem;
+}
+
+.contact-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.contact-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  transition: 0.2s ease;
+}
+
+.contact-card:hover {
+  border-color: var(--mint);
+  transform: translateY(-2px);
+}
+
+.contact-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--mint-light);
+  color: var(--mint);
+  font-size: 1.3rem;
+  margin-bottom: 0.9rem;
+}
+
+.contact-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-bottom: 0.25rem;
+}
+
+.contact-card strong {
+  display: block;
+  color: var(--navy);
+  font-size: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.contact-card small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 700px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+}
