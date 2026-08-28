@@ -1,0 +1,603 @@
+:root {
+  --navy: #1f3d35;
+  --navy-dark: #17332c;
+
+  --mint: #4fbf91;
+  --mint-light: #e5f6ed;
+
+  --text: #20342d;
+  --muted: #72827b;
+
+  --border: #d9e6df;
+  --bg: #f4f7ef;
+  --white: #ffffff;
+
+  --gold: #d5a53a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  line-height: 1.5;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Header */
+
+.site-header {
+  background: var(--navy);
+  color: white;
+  padding: 1.1rem 1rem;
+}
+
+.header-inner {
+  max-width: 1290px;
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.site-title {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+
+  color: white;
+  text-decoration: none;
+}
+
+.logo-mark {
+  width: 43px;
+  height: 43px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 11px;
+  background: var(--mint);
+
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: -0.04em;
+}
+
+.site-title strong {
+  display: block;
+  font-size: 1.45rem;
+  line-height: 1.2;
+}
+
+.site-title small {
+  display: block;
+  margin-top: 0.15rem;
+
+  font-size: 0.82rem;
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+.user-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* Buttons */
+
+.btn {
+  border: 1px solid transparent;
+  border-radius: 7px;
+
+  padding: 0.55rem 1rem;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-light {
+  background: white;
+  color: var(--navy);
+}
+
+.btn-light:hover {
+  background: #eef3f6;
+}
+
+.btn-header {
+  background: transparent;
+  color: white;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-header:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Main */
+
+main {
+  max-width: 1290px;
+  margin: 0 auto;
+  padding: 1.4rem 1rem 2rem;
+}
+
+/* Controls */
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.65rem;
+}
+
+.controls input,
+.controls select {
+  min-height: 44px;
+
+  border: 1px solid var(--border);
+  border-radius: 7px;
+
+  background: white;
+  color: var(--text);
+
+  padding: 0.55rem 0.8rem;
+
+  outline: none;
+}
+
+.controls input:focus,
+.controls select:focus {
+  border-color: var(--mint);
+  box-shadow: 0 0 0 3px rgba(85, 185, 155, 0.13);
+}
+
+.result-count {
+  margin: 0.65rem 0 0.9rem;
+
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Main layout */
+
+.layout {
+  display: grid;
+  grid-template-columns: 0.9fr 1.25fr 1fr;
+  gap: 1rem;
+
+  align-items: start;
+}
+
+.panel {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 1rem 1.1rem;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-heading h2 {
+  margin: 0;
+
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--navy);
+}
+
+.eyebrow {
+  display: block;
+
+  margin-bottom: 0.1rem;
+
+  color: var(--mint);
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+/* Restaurant list */
+
+.restaurants-panel {
+  min-height: 570px;
+}
+
+.restaurant-list {
+  padding: 0.75rem;
+}
+
+.restaurant-item {
+  margin-bottom: 0.55rem;
+  padding: 0.8rem;
+
+  border: 1px solid var(--border);
+  border-radius: 7px;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.restaurant-item:last-child {
+  margin-bottom: 0;
+}
+
+.restaurant-item:hover {
+  border-color: var(--mint);
+  transform: translateY(-1px);
+}
+
+.restaurant-item.selected {
+  background: var(--mint-light);
+  border-color: var(--mint);
+  box-shadow: inset 3px 0 0 var(--mint);
+}
+
+.restaurant-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.restaurant-item h3 {
+  margin: 0;
+
+  color: var(--navy);
+  font-size: 0.98rem;
+}
+
+.address {
+  margin: 0.1rem 0 0;
+
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.heart {
+  color: var(--muted);
+  font-size: 1.3rem;
+}
+
+.restaurant-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+
+  margin-top: 0.55rem;
+}
+
+.restaurant-meta span {
+  padding: 0.18rem 0.45rem;
+
+  border-radius: 20px;
+  background: #f0f4f6;
+
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.restaurant-item.selected .restaurant-meta span {
+  background: white;
+}
+
+.count-badge {
+  min-width: 27px;
+  height: 27px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+  background: var(--mint-light);
+
+  color: #27876d;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Details */
+
+.details-panel {
+  min-height: 570px;
+}
+
+.favourite-btn {
+  border: 1px solid #e5d39a;
+  border-radius: 6px;
+
+  padding: 0.45rem 0.7rem;
+
+  background: #fff9e8;
+  color: #85651c;
+
+  cursor: pointer;
+}
+
+.restaurant-info {
+  padding: 0.8rem 1.1rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding: 0.48rem 0;
+
+  border-bottom: 1px solid #edf0f2;
+
+  font-size: 0.86rem;
+}
+
+.info-row:last-child {
+  border-bottom: 0;
+}
+
+.info-label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Menus */
+
+.menu-section {
+  margin: 0 1.1rem 1rem;
+
+  border: 1px solid var(--border);
+  border-radius: 7px;
+
+  overflow: hidden;
+}
+
+.menu-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0.7rem 0.8rem;
+
+  background: #f8fafb;
+  border-bottom: 1px solid var(--border);
+}
+
+.menu-heading h3 {
+  margin: 0;
+
+  color: var(--navy);
+  font-size: 0.95rem;
+}
+
+.menu-date {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding: 0.7rem 0.8rem;
+
+  border-bottom: 1px solid #edf0f2;
+}
+
+.menu-item:last-child {
+  border-bottom: 0;
+}
+
+.menu-item strong {
+  display: block;
+  font-size: 0.85rem;
+}
+
+.diet {
+  display: block;
+  margin-top: 0.12rem;
+
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.price {
+  white-space: nowrap;
+
+  color: var(--navy);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.weekly {
+  margin-bottom: 1.1rem;
+}
+
+.week-row {
+  display: grid;
+  grid-template-columns: 45px 1fr auto;
+  gap: 0.5rem;
+
+  padding: 0.55rem 0.8rem;
+
+  border-bottom: 1px solid #edf0f2;
+  font-size: 0.76rem;
+}
+
+.week-row:last-child {
+  border-bottom: 0;
+}
+
+.week-row span:first-child {
+  color: var(--mint);
+  font-weight: 700;
+}
+
+/* Map */
+
+.map-panel {
+  min-height: 570px;
+}
+
+.map-placeholder {
+  min-height: 500px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 2rem;
+
+  background:
+    linear-gradient(rgba(235, 242, 245, 0.7), rgba(235, 242, 245, 0.7)),
+    repeating-linear-gradient(
+      45deg,
+      #f5f8fa,
+      #f5f8fa 10px,
+      #edf2f4 10px,
+      #edf2f4 11px
+    );
+
+  text-align: center;
+}
+
+.map-icon {
+  width: 62px;
+  height: 62px;
+
+  display: grid;
+  place-items: center;
+
+  margin-bottom: 0.9rem;
+
+  border-radius: 50%;
+
+  background: var(--mint-light);
+  color: var(--mint);
+
+  font-size: 2rem;
+}
+
+.map-placeholder h3 {
+  margin: 0;
+
+  color: var(--navy);
+  font-size: 1rem;
+}
+
+.map-placeholder p {
+  max-width: 250px;
+
+  margin: 0.45rem 0 0;
+
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+/* Footer */
+
+.site-footer {
+  max-width: 1290px;
+  margin: 0 auto;
+
+  padding: 1rem;
+
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+/* Responsive */
+
+@media (max-width: 1050px) {
+  .layout {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .map-panel {
+    grid-column: 1 / -1;
+  }
+
+  .map-placeholder {
+    min-height: 350px;
+  }
+}
+
+@media (max-width: 700px) {
+  .header-inner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .user-nav {
+    width: 100%;
+  }
+
+  .user-nav .btn {
+    flex: 1;
+  }
+
+  .controls {
+    grid-template-columns: 1fr;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .map-panel {
+    grid-column: auto;
+  }
+
+  .restaurants-panel,
+  .details-panel,
+  .map-panel {
+    min-height: auto;
+  }
+
+  .map-placeholder {
+    min-height: 300px;
+  }
+
+  .site-title strong {
+    font-size: 1.25rem;
+  }
+}

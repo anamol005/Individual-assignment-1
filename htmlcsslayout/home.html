@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StudentFood Hub</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="home.html" class="site-title">
+          <span class="logo-mark">SF</span>
+          <span>
+            <strong>StudentFood Hub</strong>
+            <small>Student restaurants & menus in Finland</small>
+          </span>
+        </a>
+
+        <nav class="user-nav">
+          <button class="btn btn-light">Log in</button>
+          <button class="btn btn-header">Register</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="controls">
+        <input
+          type="search"
+          placeholder="Search restaurants..."
+          aria-label="Search restaurants"
+        />
+
+        <select aria-label="Filter by city">
+          <option>All Cities</option>
+          <option>Espoo</option>
+          <option>Helsinki</option>
+          <option>Vantaa</option>
+          <option>Turku</option>
+          <option>Oulu</option>
+        </select>
+
+        <select aria-label="Filter by provider">
+          <option>All Providers</option>
+          <option>Compass Group</option>
+          <option>Sodexo</option>
+        </select>
+      </section>
+
+      <p class="result-count">5 restaurants found</p>
+
+      <section class="layout">
+        <!-- Restaurants -->
+        <section class="panel restaurants-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="eyebrow">DISCOVER</span>
+              <h2>Restaurants</h2>
+            </div>
+
+            <span class="count-badge">5</span>
+          </div>
+
+          <div class="restaurant-list">
+            <article class="restaurant-item selected">
+              <div class="restaurant-top">
+                <div>
+                  <h3>Metropolia</h3>
+                  <p class="address">Karakaarenkuja 6</p>
+                </div>
+                <span class="heart">♡</span>
+              </div>
+
+              <div class="restaurant-meta">
+                <span>Espoo</span>
+                <span>Compass Group</span>
+              </div>
+            </article>
+
+            <article class="restaurant-item">
+              <div class="restaurant-top">
+                <div>
+                  <h3>Metropolia Myllypuro</h3>
+                  <p class="address">Myllypurontie 1</p>
+                </div>
+                <span class="heart">♡</span>
+              </div>
+
+              <div class="restaurant-meta">
+                <span>Helsinki</span>
+                <span>Sodexo</span>
+              </div>
+            </article>
+
+            <article class="restaurant-item">
+              <div class="restaurant-top">
+                <div>
+                  <h3>Metropolia Myyrmäki</h3>
+                  <p class="address">Leiritie 1</p>
+                </div>
+                <span class="heart">♡</span>
+              </div>
+
+              <div class="restaurant-meta">
+                <span>Vantaa</span>
+                <span>Sodexo</span>
+              </div>
+            </article>
+
+            <article class="restaurant-item">
+              <div class="restaurant-top">
+                <div>
+                  <h3>Petronella</h3>
+                  <p class="address">Yliopistonkatu 8</p>
+                </div>
+                <span class="heart">♡</span>
+              </div>
+
+              <div class="restaurant-meta">
+                <span>Rovaniemi</span>
+                <span>Compass Group</span>
+              </div>
+            </article>
+
+            <article class="restaurant-item">
+              <div class="restaurant-top">
+                <div>
+                  <h3>Wicked Rabbit Metria</h3>
+                  <p class="address">Yliopistokatu 7</p>
+                </div>
+                <span class="heart">♡</span>
+              </div>
+
+              <div class="restaurant-meta">
+                <span>Joensuu</span>
+                <span>Compass Group</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Details -->
+        <section class="panel details-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="eyebrow">RESTAURANT</span>
+              <h2>Metropolia</h2>
+            </div>
+
+            <button class="favourite-btn">♡ Favourite</button>
+          </div>
+
+          <div class="restaurant-info">
+            <div class="info-row">
+              <span class="info-label">Address</span>
+              <span>Karakaarenkuja 6</span>
+            </div>
+
+            <div class="info-row">
+              <span class="info-label">City</span>
+              <span>Espoo</span>
+            </div>
+
+            <div class="info-row">
+              <span class="info-label">Provider</span>
+              <span>Compass Group</span>
+            </div>
+
+            <div class="info-row">
+              <span class="info-label">Phone</span>
+              <span>+358 20 123 4567</span>
+            </div>
+          </div>
+
+          <div class="menu-section">
+            <div class="menu-heading">
+              <div>
+                <span class="eyebrow">TODAY</span>
+                <h3>Daily Menu</h3>
+              </div>
+
+              <span class="menu-date">28 Aug</span>
+            </div>
+
+            <div class="menu-item">
+              <div>
+                <strong>Chicken curry with rice</strong>
+                <span class="diet">L, G</span>
+              </div>
+              <span class="price">€3.20</span>
+            </div>
+
+            <div class="menu-item">
+              <div>
+                <strong>Vegetable pasta</strong>
+                <span class="diet">L</span>
+              </div>
+              <span class="price">€2.90</span>
+            </div>
+          </div>
+
+          <div class="menu-section weekly">
+            <div class="menu-heading">
+              <div>
+                <span class="eyebrow">THIS WEEK</span>
+                <h3>Weekly Menu</h3>
+              </div>
+            </div>
+
+            <div class="week-row">
+              <span>Mon</span>
+              <strong>Salmon soup</strong>
+              <span>€3.20</span>
+            </div>
+
+            <div class="week-row">
+              <span>Tue</span>
+              <strong>Chicken pasta</strong>
+              <span>€3.20</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Map -->
+        <section class="panel map-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="eyebrow">LOCATION</span>
+              <h2>Map</h2>
+            </div>
+          </div>
+
+          <div class="map-placeholder">
+            <div class="map-icon">⌖</div>
+
+            <h3>Map will be displayed here</h3>
+
+            <p>
+              Restaurant locations will appear on the map when the map service
+              is connected.
+            </p>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>StudentFood Hub · Student restaurants and menus in Finland</p>
+    </footer>
+  </body>
+</html>
