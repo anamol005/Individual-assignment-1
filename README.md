@@ -140,7 +140,7 @@ The application will be published on a public server as required by the assignme
 Live site:
 
 ```text
-https://users.metropolia.fi/~anamolk/Student%20FoodHub/
+https://users.metropolia.fi/~anamolk/StudentFoodHub/
 ```
 
 ## Attribution
