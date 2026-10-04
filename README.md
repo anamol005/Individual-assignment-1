@@ -1,7 +1,7 @@
 # StudentFood Hub
 
 ## Live version
-https://users.metropolia.fi/~anamolk/Student%20FoodHub/
+https://users.metropolia.fi/~anamolk/StudentFoodHub/
 
 ## Main features
 
