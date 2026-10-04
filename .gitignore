@@ -1,4 +1,18 @@
-.vscode
-.idea
-node_modules
+# OS files
 .DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+
+# Dependencies (none are required for this vanilla project)
+node_modules/
+
+# Environment / secrets — never commit credentials or tokens
+.env
+*.local

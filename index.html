@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="StudentFood Hub - find student restaurants in Finland and view their daily and weekly menus."
+    />
+
+    <title>StudentFood Hub</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+
+  <body>
+    <div
+      id="connection-banner"
+      class="banner hidden"
+      role="status"
+      data-testid="connection-banner"
+    ></div>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <a
+          class="brand"
+          href="#"
+          data-testid="brand-link"
+          aria-label="StudentFood Hub home"
+        >
+          <span class="brand-mark" aria-hidden="true">🍃</span>
+          <span class="brand-text">StudentFood <strong>Hub</strong></span>
+        </a>
+
+        <div class="header-controls">
+          <div class="lang-switch" role="group" aria-label="Language">
+            <button
+              type="button"
+              class="lang-btn"
+              data-lang="en"
+              data-testid="lang-en"
+            >
+              EN
+            </button>
+
+            <button
+              type="button"
+              class="lang-btn"
+              data-lang="fi"
+              data-testid="lang-fi"
+            >
+              FI
+            </button>
+          </div>
+
+          <div id="account-logged-out" class="account-controls">
+            <button
+              type="button"
+              class="btn btn-ghost"
+              id="open-login"
+              data-testid="open-login-btn"
+              data-i18n="nav.login"
+            >
+              Log in
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="open-register"
+              data-testid="open-register-btn"
+              data-i18n="nav.register"
+            >
+              Register
+            </button>
+          </div>
+
+          <div id="account-logged-in" class="account-controls hidden">
+            <button
+              type="button"
+              class="user-chip"
+              id="open-profile"
+              data-testid="open-profile-btn"
+              aria-label="Open profile"
+            >
+              <img
+                id="user-avatar"
+                class="user-avatar"
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+                alt=""
+              />
+
+              <span id="user-name" class="user-name"></span>
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-ghost"
+              id="logout-btn"
+              data-testid="logout-btn"
+              data-i18n="nav.logout"
+            >
+              Log out
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="toolbar" aria-label="Search and filters">
+      <div class="toolbar-inner">
+        <div class="field search-field">
+          <label
+            class="visually-hidden"
+            for="search-input"
+            data-i18n="search.label"
+          >
+            Search restaurants
+          </label>
+
+          <input
+            type="search"
+            id="search-input"
+            class="input"
+            data-testid="search-input"
+            data-i18n-placeholder="search.placeholder"
+            placeholder="Search by name, address or city"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="city-filter" data-i18n="filter.city">
+            City
+          </label>
+
+          <select
+            id="city-filter"
+            class="input"
+            data-testid="city-filter"
+          ></select>
+        </div>
+
+        <div class="field">
+          <label
+            class="field-label"
+            for="company-filter"
+            data-i18n="filter.company"
+          >
+            Provider
+          </label>
+
+          <select
+            id="company-filter"
+            class="input"
+            data-testid="company-filter"
+          ></select>
+        </div>
+
+        <div class="field toolbar-actions">
+          <button
+            type="button"
+            class="btn btn-outline"
+            id="find-nearest"
+            data-testid="find-nearest-btn"
+            data-i18n="nearest.button"
+          >
+            Find nearest
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-ghost"
+            id="clear-filters"
+            data-testid="clear-filters-btn"
+            data-i18n="filter.clear"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <main class="layout" id="layout">
+      <section class="panel list-panel" aria-label="Restaurant list">
+        <div class="panel-head">
+          <h2 class="panel-title" data-i18n="list.title">Restaurants</h2>
+
+          <span
+            id="list-count"
+            class="count-pill"
+            data-testid="list-count"
+          ></span>
+        </div>
+
+        <div
+          id="restaurant-list"
+          class="restaurant-list"
+          data-testid="restaurant-list"
+          aria-live="polite"
+        ></div>
+      </section>
+
+      <section
+        class="panel detail-panel"
+        aria-label="Restaurant details and menu"
+      >
+        <button
+          type="button"
+          class="btn btn-ghost back-btn"
+          id="back-to-list"
+          data-testid="back-to-list-btn"
+          data-i18n="details.backToList"
+        >
+          ← Back to restaurants
+        </button>
+
+        <div id="detail-empty" class="empty-state" data-testid="detail-empty">
+          <p data-i18n="details.select">
+            Select a restaurant to see its details and menu.
+          </p>
+        </div>
+
+        <article
+          id="detail-content"
+          class="detail-content hidden"
+          data-testid="detail-content"
+        >
+          <header class="detail-header">
+            <h2
+              id="detail-name"
+              class="detail-name"
+              data-testid="detail-name"
+            ></h2>
+
+            <button
+              type="button"
+              class="btn btn-primary fav-btn"
+              id="favourite-btn"
+              data-testid="favourite-btn"
+            ></button>
+          </header>
+
+          <p
+            id="favourite-note"
+            class="favourite-note"
+            data-testid="favourite-note"
+            data-i18n="details.favouriteNote"
+          ></p>
+
+          <dl class="detail-info">
+            <div>
+              <dt data-i18n="details.address">Address</dt>
+              <dd id="detail-address" data-testid="detail-address"></dd>
+            </div>
+
+            <div>
+              <dt data-i18n="details.city">City</dt>
+              <dd id="detail-city"></dd>
+            </div>
+
+            <div>
+              <dt data-i18n="details.postal">Postal code</dt>
+              <dd id="detail-postal"></dd>
+            </div>
+
+            <div>
+              <dt data-i18n="details.phone">Phone</dt>
+              <dd id="detail-phone"></dd>
+            </div>
+
+            <div>
+              <dt data-i18n="details.company">Provider</dt>
+              <dd id="detail-company"></dd>
+            </div>
+          </dl>
+
+          <div class="menu-mode" role="tablist" aria-label="Menu type">
+            <button
+              type="button"
+              class="mode-btn active"
+              id="mode-daily"
+              data-mode="daily"
+              role="tab"
+              data-testid="mode-daily-btn"
+              data-i18n="menu.daily"
+            >
+              Daily menu
+            </button>
+
+            <button
+              type="button"
+              class="mode-btn"
+              id="mode-weekly"
+              data-mode="weekly"
+              role="tab"
+              data-testid="mode-weekly-btn"
+              data-i18n="menu.weekly"
+            >
+              Weekly menu
+            </button>
+          </div>
+
+          <div
+            id="day-selector"
+            class="day-selector hidden"
+            data-testid="day-selector"
+            role="group"
+            aria-label="Choose a day"
+          ></div>
+
+          <div
+            id="menu-container"
+            class="menu-container"
+            data-testid="menu-container"
+            aria-live="polite"
+          ></div>
+        </article>
+      </section>
+
+      <aside class="panel map-panel" aria-label="Map">
+        <div class="panel-head">
+          <h2 class="panel-title" data-i18n="map.title">Location</h2>
+        </div>
+
+        <div id="map-empty" class="empty-state small" data-testid="map-empty">
+          <p data-i18n="map.selectHint">
+            Select a restaurant to see it on the map.
+          </p>
+        </div>
+
+        <div id="map-wrap" class="map-wrap hidden">
+          <iframe
+            id="map-frame"
+            class="map-frame"
+            title="Restaurant location map"
+            loading="lazy"
+            data-testid="map-frame"
+          ></iframe>
+
+          <div class="map-foot">
+            <a
+              id="map-larger"
+              class="map-larger"
+              href="https://www.openstreetmap.org/"
+              target="_blank"
+              rel="noopener"
+              data-testid="map-larger-link"
+              data-i18n="map.larger"
+            >
+              View larger map
+            </a>
+
+            <span class="map-attr" data-i18n="map.attribution">
+              © OpenStreetMap contributors
+            </span>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        StudentFood Hub ·
+        <span data-i18n="footer.note">
+          Course project using the Metropolia Student Restaurants API
+        </span>
+      </p>
+    </footer>
+
+    <dialog id="auth-dialog" class="dialog" data-testid="auth-dialog">
+      <form id="auth-form" class="dialog-form" method="dialog" novalidate>
+        <div class="dialog-head">
+          <h2
+            id="auth-title"
+            class="dialog-title"
+            data-testid="auth-title"
+          ></h2>
+
+          <button
+            type="button"
+            class="icon-btn"
+            data-close-dialog
+            aria-label="Close"
+            data-testid="auth-close-btn"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="field">
+          <label for="auth-username" data-i18n="auth.username">
+            Username
+          </label>
+
+          <input
+            id="auth-username"
+            class="input"
+            type="text"
+            autocomplete="username"
+            required
+            data-testid="auth-username-input"
+          />
+        </div>
+
+        <div class="field" id="auth-email-field">
+          <label for="auth-email" data-i18n="auth.email">Email</label>
+
+          <input
+            id="auth-email"
+            class="input"
+            type="email"
+            autocomplete="email"
+            data-testid="auth-email-input"
+          />
+        </div>
+
+        <div class="field">
+          <label for="auth-password" data-i18n="auth.password">
+            Password
+          </label>
+
+          <input
+            id="auth-password"
+            class="input"
+            type="password"
+            autocomplete="current-password"
+            required
+            data-testid="auth-password-input"
+          />
+        </div>
+
+        <p
+          id="auth-message"
+          class="form-message"
+          data-testid="auth-message"
+          role="alert"
+        ></p>
+
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          id="auth-submit"
+          data-testid="auth-submit-btn"
+        ></button>
+
+        <p class="dialog-switch">
+          <span id="auth-switch-text"></span>
+
+          <button
+            type="button"
+            class="link-btn"
+            id="auth-switch-btn"
+            data-testid="auth-switch-btn"
+          ></button>
+        </p>
+      </form>
+    </dialog>
+
+    <dialog id="profile-dialog" class="dialog" data-testid="profile-dialog">
+      <form id="profile-form" class="dialog-form" method="dialog">
+        <div class="dialog-head">
+          <h2 class="dialog-title" data-i18n="profile.title">Edit profile</h2>
+
+          <button
+            type="button"
+            class="icon-btn"
+            data-close-dialog
+            aria-label="Close"
+            data-testid="profile-close-btn"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="avatar-row">
+          <img
+            id="profile-avatar"
+            class="profile-avatar"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+            alt=""
+            data-testid="profile-avatar"
+          />
+
+          <div class="avatar-actions">
+            <label
+              class="btn btn-outline"
+              for="avatar-input"
+              data-i18n="profile.chooseAvatar"
+            >
+              Choose picture
+            </label>
+
+            <input
+              id="avatar-input"
+              type="file"
+              accept="image/*"
+              class="visually-hidden"
+              data-testid="avatar-input"
+            />
+
+            <button
+              type="button"
+              class="btn btn-ghost"
+              id="avatar-upload-btn"
+              data-testid="avatar-upload-btn"
+              data-i18n="profile.upload"
+            >
+              Upload
+            </button>
+          </div>
+        </div>
+
+        <p
+          id="avatar-message"
+          class="form-message"
+          data-testid="avatar-message"
+        ></p>
+
+        <div class="field">
+          <label for="profile-username" data-i18n="auth.username">
+            Username
+          </label>
+
+          <input
+            id="profile-username"
+            class="input"
+            type="text"
+            data-testid="profile-username-input"
+          />
+        </div>
+
+        <div class="field">
+          <label for="profile-email" data-i18n="auth.email">Email</label>
+
+          <input
+            id="profile-email"
+            class="input"
+            type="email"
+            data-testid="profile-email-input"
+          />
+        </div>
+
+        <div class="field">
+          <label for="profile-password" data-i18n="profile.newPassword">
+            New password (leave blank to keep)
+          </label>
+
+          <input
+            id="profile-password"
+            class="input"
+            type="password"
+            autocomplete="new-password"
+            data-testid="profile-password-input"
+          />
+        </div>
+
+        <p
+          id="profile-message"
+          class="form-message"
+          data-testid="profile-message"
+          role="alert"
+        ></p>
+
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          id="profile-submit"
+          data-testid="profile-submit-btn"
+          data-i18n="profile.save"
+        >
+          Save changes
+        </button>
+      </form>
+    </dialog>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
