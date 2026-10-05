@@ -1,20 +1,16 @@
 import {state} from './state.js';
-import {t, countText} from './i18n.js';
-import {getRestaurants, getRestaurant, ApiError} from './api.js';
+import {getRestaurants} from './api.js';
 import {loadMenu} from './menu.js';
 
 const $ = (id) => document.getElementById(id);
 
-/* ---------------- Data loading ---------------- */
-
-// Load the restaurant list from the API.
-export async function loadRestaurants() {
+export async function loadRestaurants(showBanner) {
   const list = $('restaurant-list');
 
   list.innerHTML = `
     <div class="status-block">
       <div class="spinner"></div>
-      ${t('list.loading')}
+      Loading restaurants...
     </div>
   `;
 
@@ -23,18 +19,22 @@ export async function loadRestaurants() {
 
     state.restaurants = Array.isArray(data) ? data : [];
 
-    afterRestaurantsLoaded();
-  } catch (err) {
-    if (err instanceof ApiError && err.network) {
-      document.dispatchEvent(new CustomEvent('sfh:offline'));
+    populateFilters();
+    renderList();
+  } catch (error) {
+    if (error.message === 'network' && showBanner) {
+      showBanner(
+        'Cannot reach the Metropolia restaurant API. Connect to the Metropolia network or VPN.',
+        'error'
+      );
     }
 
     list.innerHTML = `
       <div class="status-block error">
-        ${t('list.error')}
-        <div style="margin-top:.6rem">
+        Could not load restaurants.
+        <div>
           <button class="btn btn-outline" id="retry-list">
-            ${t('list.retry')}
+            Try again
           </button>
         </div>
       </div>
@@ -43,29 +43,32 @@ export async function loadRestaurants() {
     const retry = $('retry-list');
 
     if (retry) {
-      retry.addEventListener('click', loadRestaurants);
+      retry.addEventListener('click', () => {
+        loadRestaurants(showBanner);
+      });
     }
   }
 }
 
-function afterRestaurantsLoaded() {
-  populateFilters();
-  renderList();
-}
-
-/* ---------------- Filters ---------------- */
-
-// Fill the city and provider dropdowns.
 function populateFilters() {
-  const cities = [
-    ...new Set(state.restaurants.map((r) => r.city).filter(Boolean)),
-  ].sort();
+  const cities = [];
+  const companies = [];
 
-  const companies = [
-    ...new Set(state.restaurants.map((r) => r.company).filter(Boolean)),
-  ].sort();
+  for (const restaurant of state.restaurants) {
+    if (restaurant.city && !cities.includes(restaurant.city)) {
+      cities.push(restaurant.city);
+    }
+
+    if (restaurant.company && !companies.includes(restaurant.company)) {
+      companies.push(restaurant.company);
+    }
+  }
+
+  cities.sort();
+  companies.sort();
 
   fillSelect($('city-filter'), cities, state.filters.city);
+
   fillSelect($('company-filter'), companies, state.filters.company);
 }
 
@@ -73,86 +76,92 @@ function fillSelect(select, values, current) {
   select.innerHTML = '';
 
   const all = document.createElement('option');
+
   all.value = '';
-  all.textContent = t('filter.all');
+  all.textContent = 'All';
+
   select.appendChild(all);
 
-  values.forEach((value) => {
+  for (const value of values) {
     const option = document.createElement('option');
 
     option.value = value;
     option.textContent = value;
 
     select.appendChild(option);
-  });
+  }
 
   select.value = current || '';
 }
 
-// Return restaurants that match the filters.
 function getFilteredRestaurants() {
   const search = state.filters.search.trim().toLowerCase();
 
-  return state.restaurants
-    .filter((restaurant) => {
-      if (state.filters.city && restaurant.city !== state.filters.city) {
+  const restaurants = state.restaurants.filter((restaurant) => {
+    if (state.filters.city && restaurant.city !== state.filters.city) {
+      return false;
+    }
+
+    if (state.filters.company && restaurant.company !== state.filters.company) {
+      return false;
+    }
+
+    if (search) {
+      const name = restaurant.name || '';
+      const address = restaurant.address || '';
+      const city = restaurant.city || '';
+
+      const text = (name + ' ' + address + ' ' + city).toLowerCase();
+
+      if (!text.includes(search)) {
         return false;
       }
+    }
 
-      if (
-        state.filters.company &&
-        restaurant.company !== state.filters.company
-      ) {
-        return false;
-      }
+    return true;
+  });
 
-      if (search) {
-        const text = [restaurant.name, restaurant.address, restaurant.city]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
+  restaurants.sort((a, b) => {
+    return (a.name || '').localeCompare(b.name || '');
+  });
 
-        if (!text.includes(search)) {
-          return false;
-        }
-      }
-
-      return true;
-    })
-    .sort((a, b) => {
-      return (a.name || '').localeCompare(b.name || '');
-    });
+  return restaurants;
 }
-
-/* ---------------- List rendering ---------------- */
 
 export function renderList() {
   const list = $('restaurant-list');
   const restaurants = getFilteredRestaurants();
 
-  $('list-count').textContent = countText(restaurants.length);
+  if (restaurants.length === 1) {
+    $('list-count').textContent = '1 restaurant';
+  } else {
+    $('list-count').textContent = restaurants.length + ' restaurants';
+  }
 
   list.innerHTML = '';
 
   if (restaurants.length === 0) {
     list.innerHTML = `
       <div class="status-block">
-        ${t('list.empty')}
+        No restaurants match your search or filters.
       </div>
     `;
 
     return;
   }
 
-  const favouriteId = state.user?.favouriteRestaurant || null;
+  let favouriteId = null;
 
-  restaurants.forEach((restaurant) => {
+  if (state.user) {
+    favouriteId = state.user.favouriteRestaurant;
+  }
+
+  for (const restaurant of restaurants) {
     const card = document.createElement('button');
 
     card.type = 'button';
     card.className = 'restaurant-card';
-
-    card.dataset.testid = 'restaurant-card-' + restaurant._id;
+    card.dataset.restaurantId = restaurant._id;
 
     if (restaurant._id === state.selectedId) {
       card.classList.add('selected');
@@ -165,7 +174,7 @@ export function renderList() {
     const name = document.createElement('div');
 
     name.className = 'rc-name';
-    name.textContent = restaurant.name || t('name.missing');
+    name.textContent = restaurant.name || 'Unnamed restaurant';
 
     if (favouriteId && restaurant._id === favouriteId) {
       const badge = document.createElement('span');
@@ -180,7 +189,7 @@ export function renderList() {
       const badge = document.createElement('span');
 
       badge.className = 'badge badge-near';
-      badge.textContent = t('nearest.badge');
+      badge.textContent = 'Nearest';
 
       name.appendChild(badge);
     }
@@ -189,8 +198,14 @@ export function renderList() {
 
     sub.className = 'rc-sub';
 
-    sub.textContent =
-      [restaurant.address, restaurant.city].filter(Boolean).join(', ') || '';
+    const address = restaurant.address || '';
+    const city = restaurant.city || '';
+
+    if (address && city) {
+      sub.textContent = address + ', ' + city;
+    } else {
+      sub.textContent = address || city;
+    }
 
     card.appendChild(name);
     card.appendChild(sub);
@@ -200,23 +215,20 @@ export function renderList() {
     });
 
     list.appendChild(card);
-  });
+  }
 }
 
-/* ---------------- Selection + details ---------------- */
-
-export async function selectRestaurant(id) {
+export function selectRestaurant(id) {
   state.selectedId = id;
   state.menuMode = 'daily';
 
-  const cached = state.restaurants.find((restaurant) => restaurant._id === id);
+  const restaurant = state.restaurants.find((item) => item._id === id);
 
-  if (!cached) {
+  if (!restaurant) {
     return;
   }
 
-  renderDetail(cached);
-
+  renderDetail(restaurant);
   renderList();
 
   document.body.classList.add('show-detail');
@@ -226,36 +238,25 @@ export async function selectRestaurant(id) {
     behavior: 'smooth',
   });
 
-  buildMap(cached);
-
+  buildMap(restaurant);
   setMenuMode('daily');
-
-  // Get fresh restaurant details from the API.
-  try {
-    const fresh = await getRestaurant(id);
-
-    if (fresh && fresh._id === state.selectedId) {
-      Object.assign(cached, fresh);
-
-      renderDetail(cached);
-      buildMap(cached);
-    }
-  } catch (error) {
-    // Keep the restaurant data already loaded.
-  }
 }
 
-// Show the selected restaurant information.
 export function renderDetail(restaurant) {
   $('detail-empty').classList.add('hidden');
+
   $('detail-content').classList.remove('hidden');
 
-  $('detail-name').textContent = restaurant.name || t('name.missing');
+  $('detail-name').textContent = restaurant.name || 'Unnamed restaurant';
 
   setInfo('detail-address', restaurant.address);
+
   setInfo('detail-city', restaurant.city);
+
   setInfo('detail-postal', restaurant.postalCode);
+
   setInfo('detail-phone', restaurant.phone);
+
   setInfo('detail-company', restaurant.company);
 
   renderFavouriteButton(restaurant);
@@ -264,7 +265,7 @@ export function renderDetail(restaurant) {
 function setInfo(id, value) {
   const element = $(id);
 
-  if (value && String(value).trim()) {
+  if (value) {
     element.textContent = value;
     element.classList.remove('missing');
   } else {
@@ -273,14 +274,16 @@ function setInfo(id, value) {
   }
 }
 
-// Update the favourite button.
 function renderFavouriteButton(restaurant) {
   const button = $('favourite-btn');
+
   const note = $('favourite-note');
 
   if (!state.user) {
-    button.textContent = t('details.loginToFav');
+    button.textContent = 'Log in to save a favourite';
+
     button.classList.remove('is-fav');
+
     button.disabled = false;
 
     note.classList.add('hidden');
@@ -289,22 +292,24 @@ function renderFavouriteButton(restaurant) {
   }
 
   note.classList.remove('hidden');
-  note.textContent = t('details.favouriteNote');
+
+  note.textContent =
+    'You can save one favourite restaurant. Choosing another one replaces it.';
 
   const isFavourite = state.user.favouriteRestaurant === restaurant._id;
 
   button.disabled = false;
 
   if (isFavourite) {
-    button.textContent = t('details.yourFavourite');
+    button.textContent = '★ Your favourite';
+
     button.classList.add('is-fav');
   } else {
-    button.textContent = t('details.setFavourite');
+    button.textContent = 'Set as my favourite';
+
     button.classList.remove('is-fav');
   }
 }
-
-/* ---------------- Menu mode buttons ---------------- */
 
 export function setMenuMode(mode) {
   state.menuMode = mode;
@@ -316,32 +321,23 @@ export function setMenuMode(mode) {
   loadMenu();
 }
 
-/* ---------------- Map ---------------- */
-
-// API coordinates are longitude first and latitude second.
 function buildMap(restaurant) {
   const coordinates = restaurant.location?.coordinates;
 
   const empty = $('map-empty');
   const wrap = $('map-wrap');
 
-  const longitude = Array.isArray(coordinates) ? Number(coordinates[0]) : NaN;
+  if (!Array.isArray(coordinates) || coordinates.length < 2) {
+    showNoMap();
+    return;
+  }
 
-  const latitude = Array.isArray(coordinates) ? Number(coordinates[1]) : NaN;
+  const longitude = Number(coordinates[0]);
 
-  const valid =
-    Number.isFinite(latitude) &&
-    Number.isFinite(longitude) &&
-    Math.abs(latitude) <= 90 &&
-    Math.abs(longitude) <= 180 &&
-    !(latitude === 0 && longitude === 0);
+  const latitude = Number(coordinates[1]);
 
-  if (!valid) {
-    wrap.classList.add('hidden');
-    empty.classList.remove('hidden');
-
-    empty.querySelector('p').textContent = t('map.noCoords');
-
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    showNoMap();
     return;
   }
 
@@ -351,48 +347,71 @@ function buildMap(restaurant) {
   const distance = 0.008;
 
   const bbox =
-    `${longitude - distance},` +
-    `${latitude - distance},` +
-    `${longitude + distance},` +
-    `${latitude + distance}`;
+    longitude -
+    distance +
+    ',' +
+    (latitude - distance) +
+    ',' +
+    (longitude + distance) +
+    ',' +
+    (latitude + distance);
 
   $('map-frame').src =
-    `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}` +
-    `&layer=mapnik&marker=${latitude},${longitude}`;
+    'https://www.openstreetmap.org/export/embed.html?bbox=' +
+    bbox +
+    '&layer=mapnik&marker=' +
+    latitude +
+    ',' +
+    longitude;
 
   $('map-larger').href =
-    `https://www.openstreetmap.org/?mlat=${latitude}` +
-    `&mlon=${longitude}#map=16/${latitude}/${longitude}`;
+    'https://www.openstreetmap.org/?mlat=' +
+    latitude +
+    '&mlon=' +
+    longitude +
+    '#map=16/' +
+    latitude +
+    '/' +
+    longitude;
 }
 
-/* ---------------- Find nearest ---------------- */
+function showNoMap() {
+  $('map-wrap').classList.add('hidden');
+
+  $('map-empty').classList.remove('hidden');
+
+  $('map-empty').querySelector('p').textContent =
+    'No valid coordinates for this restaurant.';
+}
 
 function haversineKm(lat1, lon1, lat2, lon2) {
   const radius = 6371;
 
-  const toRadians = (degree) => (degree * Math.PI) / 180;
+  const toRadians = (degree) => {
+    return (degree * Math.PI) / 180;
+  };
 
-  const latitudeDifference = toRadians(lat2 - lat1);
+  const latDifference = toRadians(lat2 - lat1);
 
-  const longitudeDifference = toRadians(lon2 - lon1);
+  const lonDifference = toRadians(lon2 - lon1);
 
   const a =
-    Math.sin(latitudeDifference / 2) ** 2 +
+    Math.sin(latDifference / 2) ** 2 +
     Math.cos(toRadians(lat1)) *
       Math.cos(toRadians(lat2)) *
-      Math.sin(longitudeDifference / 2) ** 2;
+      Math.sin(lonDifference / 2) ** 2;
 
   return radius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 export function startFindNearest(setBanner) {
   if (!('geolocation' in navigator)) {
-    setBanner(t('nearest.unsupported'), 'error');
+    setBanner('Your browser does not support location.', 'error');
 
     return;
   }
 
-  setBanner(t('nearest.locating'), '');
+  setBanner('Finding your location...', '');
 
   navigator.geolocation.getCurrentPosition(
     (position) => {
@@ -406,24 +425,17 @@ export function startFindNearest(setBanner) {
       for (const restaurant of state.restaurants) {
         const coordinates = restaurant.location?.coordinates;
 
-        const restaurantLongitude = Array.isArray(coordinates)
-          ? Number(coordinates[0])
-          : NaN;
+        if (!Array.isArray(coordinates)) {
+          continue;
+        }
 
-        const restaurantLatitude = Array.isArray(coordinates)
-          ? Number(coordinates[1])
-          : NaN;
+        const restaurantLongitude = Number(coordinates[0]);
+
+        const restaurantLatitude = Number(coordinates[1]);
 
         if (
           !Number.isFinite(restaurantLatitude) ||
           !Number.isFinite(restaurantLongitude)
-        ) {
-          continue;
-        }
-
-        if (
-          Math.abs(restaurantLatitude) > 90 ||
-          Math.abs(restaurantLongitude) > 180
         ) {
           continue;
         }
@@ -442,7 +454,7 @@ export function startFindNearest(setBanner) {
       }
 
       if (!nearestRestaurant) {
-        setBanner(t('nearest.noCoords'), 'error');
+        setBanner('No restaurants have valid coordinates to compare.', 'error');
 
         return;
       }
@@ -451,10 +463,10 @@ export function startFindNearest(setBanner) {
 
       renderList();
 
-      setBanner(t('nearest.done'), '');
+      setBanner('Nearest restaurant highlighted in the list.', '');
 
       const card = document.querySelector(
-        `[data-testid="restaurant-card-${nearestRestaurant._id}"]`
+        `[data-restaurant-id="${nearestRestaurant._id}"]`
       );
 
       if (card) {
@@ -467,24 +479,16 @@ export function startFindNearest(setBanner) {
 
     (error) => {
       if (error.code === error.PERMISSION_DENIED) {
-        setBanner(t('nearest.denied'), 'error');
+        setBanner('Location permission was denied.', 'error');
       } else {
-        setBanner(t('nearest.unavailable'), 'error');
+        setBanner('Your location is currently unavailable.', 'error');
       }
-    },
-
-    {
-      enableHighAccuracy: false,
-      timeout: 10000,
     }
   );
 }
 
-/* ---------------- Public helpers ---------------- */
-
 export function setFilter(key, value) {
   state.filters[key] = value;
-
   renderList();
 }
 

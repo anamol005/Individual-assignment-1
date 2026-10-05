@@ -1,7 +1,6 @@
-import {LS_LANG, LS_TOKEN} from './config.js';
+import {LS_TOKEN} from './config.js';
 
 export const state = {
-  lang: localStorage.getItem(LS_LANG) || 'en',
   token: localStorage.getItem(LS_TOKEN) || null,
 
   user: null,
@@ -28,9 +27,4 @@ export function setToken(token) {
   } else {
     localStorage.removeItem(LS_TOKEN);
   }
-}
-
-export function setLang(lang) {
-  state.lang = lang;
-  localStorage.setItem(LS_LANG, lang);
 }

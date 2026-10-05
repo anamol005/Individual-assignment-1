@@ -1,6 +1,7 @@
 # StudentFood Hub
 
 ## Live version
+
 https://users.metropolia.fi/~anamolk/StudentFoodHub/
 
 ## Main features
@@ -13,4 +14,3 @@ https://users.metropolia.fi/~anamolk/StudentFoodHub/
 - Login and registration
 - Favourite restaurant
 - Profile update and avatar upload
-- English and Finnish language support

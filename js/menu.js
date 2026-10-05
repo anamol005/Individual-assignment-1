@@ -1,19 +1,17 @@
 import {state} from './state.js';
-import {t} from './i18n.js';
 import {getDailyMenu, getWeeklyMenu} from './api.js';
 
-const menuContainer = () => document.getElementById('menu-container');
-const daySelector = () => document.getElementById('day-selector');
+const $ = (id) => document.getElementById(id);
 
-function formatDay(dateStr) {
-  if (!dateStr) {
+function formatDay(dateText) {
+  if (!dateText) {
     return {
       name: '',
       date: '',
     };
   }
 
-  const parts = dateStr.trim().split(' ');
+  const parts = dateText.trim().split(' ');
 
   if (parts.length >= 3) {
     return {
@@ -23,27 +21,26 @@ function formatDay(dateStr) {
   }
 
   return {
-    name: dateStr,
+    name: dateText,
     date: '',
   };
 }
 
-function priceElement(price) {
+function createPrice(price) {
   const element = document.createElement('div');
-
   element.className = 'course-price';
 
   if (price) {
     element.textContent = price;
   } else {
-    element.textContent = t('price.missing');
+    element.textContent = 'Price not available';
     element.classList.add('missing');
   }
 
   return element;
 }
 
-function courseElement(course) {
+function createCourse(course) {
   const row = document.createElement('div');
   row.className = 'course';
 
@@ -52,7 +49,7 @@ function courseElement(course) {
 
   const name = document.createElement('div');
   name.className = 'course-name';
-  name.textContent = course.name || t('name.missing');
+  name.textContent = course.name || 'Unnamed dish';
 
   main.appendChild(name);
 
@@ -74,7 +71,6 @@ function courseElement(course) {
       }
 
       const chip = document.createElement('span');
-
       chip.className = 'diet-chip';
       chip.textContent = diet.trim();
 
@@ -84,7 +80,7 @@ function courseElement(course) {
     const missing = document.createElement('span');
 
     missing.className = 'missing';
-    missing.textContent = t('diets.missing');
+    missing.textContent = 'No dietary information';
 
     diets.appendChild(missing);
   }
@@ -92,20 +88,20 @@ function courseElement(course) {
   main.appendChild(diets);
 
   row.appendChild(main);
-  row.appendChild(priceElement(course.price));
+  row.appendChild(createPrice(course.price));
 
   return row;
 }
 
 function renderCourses(courses) {
-  const container = menuContainer();
+  const container = $('menu-container');
 
   container.innerHTML = '';
 
   if (!Array.isArray(courses) || courses.length === 0) {
     container.innerHTML = `
       <div class="status-block">
-        ${t('menu.empty')}
+        No menu is available for this day.
       </div>
     `;
 
@@ -113,18 +109,18 @@ function renderCourses(courses) {
   }
 
   for (const course of courses) {
-    container.appendChild(courseElement(course));
+    container.appendChild(createCourse(course));
   }
 }
 
 function showMenuStatus(type) {
-  const container = menuContainer();
+  const container = $('menu-container');
 
   if (type === 'loading') {
     container.innerHTML = `
       <div class="status-block">
         <div class="spinner"></div>
-        ${t('menu.loading')}
+        Loading menu...
       </div>
     `;
   }
@@ -132,24 +128,27 @@ function showMenuStatus(type) {
   if (type === 'error') {
     container.innerHTML = `
       <div class="status-block error">
-        ${t('menu.error')}
+        Could not load the menu.
       </div>
     `;
   }
 }
 
-function renderDaySelector() {
-  const selector = daySelector();
+function renderDaySelector(days) {
+  const selector = $('day-selector');
 
   selector.innerHTML = '';
-  selector.classList.remove('hidden');
 
-  if (!state.weeklyDays || state.weeklyDays.length === 0) {
+  if (!Array.isArray(days) || days.length === 0) {
+    selector.classList.add('hidden');
     renderCourses([]);
     return;
   }
 
-  state.weeklyDays.forEach((day, index) => {
+  selector.classList.remove('hidden');
+
+  for (let i = 0; i < days.length; i++) {
+    const day = days[i];
     const label = formatDay(day.date);
 
     const button = document.createElement('button');
@@ -157,18 +156,13 @@ function renderDaySelector() {
     button.type = 'button';
     button.className = 'day-btn';
 
-    if (index === 0) {
+    if (i === 0) {
       button.classList.add('active');
     }
 
     button.innerHTML = `
-      <span class="day-name">
-        ${label.name}
-      </span>
-
-      <span class="day-date">
-        ${label.date}
-      </span>
+      <span class="day-name">${label.name}</span>
+      <span class="day-date">${label.date}</span>
     `;
 
     button.addEventListener('click', () => {
@@ -184,9 +178,9 @@ function renderDaySelector() {
     });
 
     selector.appendChild(button);
-  });
+  }
 
-  renderCourses(state.weeklyDays[0].courses);
+  renderCourses(days[0].courses);
 }
 
 export async function loadMenu() {
@@ -196,24 +190,21 @@ export async function loadMenu() {
     return;
   }
 
-  daySelector().classList.add('hidden');
+  $('day-selector').classList.add('hidden');
 
   showMenuStatus('loading');
 
   try {
     if (state.menuMode === 'daily') {
-      const courses = await getDailyMenu(id, state.lang);
+      const courses = await getDailyMenu(id, 'en');
 
       renderCourses(courses);
     } else {
-      const days = await getWeeklyMenu(id, state.lang);
+      const days = await getWeeklyMenu(id, 'en');
 
-      state.weeklyDays = days;
-
-      renderDaySelector();
+      renderDaySelector(days);
     }
-  } catch (error) {
-    console.log(error);
+  } catch {
     showMenuStatus('error');
   }
 }

@@ -1,5 +1,4 @@
 import {state, setToken} from './state.js';
-import {t} from './i18n.js';
 import {UPLOADS_BASE} from './config.js';
 
 import {
@@ -20,10 +19,7 @@ import {
 const $ = (id) => document.getElementById(id);
 
 const DEFAULT_AVATAR =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="%232e7d6b"/><circle cx="32" cy="26" r="12" fill="%23dcece6"/><rect x="14" y="42" width="36" height="20" rx="10" fill="%23dcece6"/></svg>'
-  );
+  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
 let authMode = 'login';
 
@@ -32,7 +28,7 @@ function resolveAvatar(avatar) {
     return DEFAULT_AVATAR;
   }
 
-  if (/^https?:\/\//i.test(avatar)) {
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
     return avatar;
   }
 
@@ -69,9 +65,7 @@ export async function restoreSession() {
       updateAccountUI();
 
       if (user.favouriteRestaurant) {
-        setTimeout(() => {
-          selectRestaurant(user.favouriteRestaurant);
-        }, 300);
+        selectRestaurant(user.favouriteRestaurant);
       }
     }
   } catch (error) {
@@ -89,23 +83,20 @@ export function openAuth(mode) {
   const isRegister = mode === 'register';
 
   $('auth-email-field').classList.toggle('hidden', !isRegister);
+
   $('auth-email').required = isRegister;
 
-  $('auth-title').textContent = t(
-    isRegister ? 'auth.registerTitle' : 'auth.loginTitle'
-  );
-
-  $('auth-submit').textContent = t(
-    isRegister ? 'auth.registerSubmit' : 'auth.loginSubmit'
-  );
-
-  $('auth-switch-text').textContent = t(
-    isRegister ? 'auth.haveAccount' : 'auth.needAccount'
-  );
-
-  $('auth-switch-btn').textContent = t(
-    isRegister ? 'auth.switchToLogin' : 'auth.switchToRegister'
-  );
+  if (isRegister) {
+    $('auth-title').textContent = 'Create an account';
+    $('auth-submit').textContent = 'Register';
+    $('auth-switch-text').textContent = 'Already have an account?';
+    $('auth-switch-btn').textContent = 'Log in';
+  } else {
+    $('auth-title').textContent = 'Log in';
+    $('auth-submit').textContent = 'Log in';
+    $('auth-switch-text').textContent = "Don't have an account?";
+    $('auth-switch-btn').textContent = 'Register';
+  }
 
   setAuthMessage('', '');
 
@@ -133,17 +124,21 @@ export async function handleAuthSubmit(event) {
   event.preventDefault();
 
   const username = $('auth-username').value.trim();
+
   const password = $('auth-password').value;
+
   const email = $('auth-email').value.trim();
+
   const submit = $('auth-submit');
 
   if (!username || !password || (authMode === 'register' && !email)) {
-    setAuthMessage(t('auth.required'), 'error');
+    setAuthMessage('Please fill in all required fields.', 'error');
+
     return;
   }
 
   submit.disabled = true;
-  submit.textContent = t('auth.working');
+  submit.textContent = 'Please wait...';
 
   try {
     if (authMode === 'login') {
@@ -156,7 +151,8 @@ export async function handleAuthSubmit(event) {
         !response.data.username
       ) {
         setAuthMessage(
-          (response && response.message) || t('auth.loginFailed'),
+          (response && response.message) ||
+            'Login failed. Check your username and password.',
           'error'
         );
 
@@ -170,39 +166,45 @@ export async function handleAuthSubmit(event) {
 
       $('auth-dialog').close();
 
-      if (response.data.favouriteRestaurant) {
-        selectRestaurant(response.data.favouriteRestaurant);
+      if (state.user.favouriteRestaurant) {
+        selectRestaurant(state.user.favouriteRestaurant);
       }
     } else {
       const response = await register(username, email, password);
 
       if (response && response.activationUrl) {
         setAuthMessage(
-          t('auth.activation') + ' ' + response.activationUrl,
+          'Please activate your account using this link: ' +
+            response.activationUrl,
           'ok'
         );
       } else {
-        setAuthMessage(t('auth.registerSuccess'), 'ok');
+        setAuthMessage('Account created. You can now log in.', 'ok');
       }
 
       authMode = 'login';
 
       $('auth-email-field').classList.add('hidden');
+
       $('auth-email').required = false;
 
-      $('auth-title').textContent = t('auth.loginTitle');
-      $('auth-submit').textContent = t('auth.loginSubmit');
-      $('auth-switch-text').textContent = t('auth.needAccount');
-      $('auth-switch-btn').textContent = t('auth.switchToRegister');
+      $('auth-title').textContent = 'Log in';
+      $('auth-submit').textContent = 'Log in';
+      $('auth-switch-text').textContent = "Don't have an account?";
+      $('auth-switch-btn').textContent = 'Register';
     }
   } catch (error) {
-    const textKey =
-      authMode === 'login' ? 'auth.loginFailed' : 'auth.registerFailed';
+    let message;
 
-    let message = t(textKey);
+    if (authMode === 'login') {
+      message = 'Login failed. Check your username and password.';
+    } else {
+      message = 'Registration failed.';
+    }
 
     if (error instanceof ApiError && error.network) {
-      message = t('conn.offline');
+      message =
+        'Cannot reach the Metropolia restaurant API. Connect to the Metropolia network or VPN.';
     } else if (error.message && error.message !== 'network') {
       message = error.message;
     }
@@ -212,9 +214,9 @@ export async function handleAuthSubmit(event) {
     submit.disabled = false;
 
     if (authMode === 'register') {
-      submit.textContent = t('auth.registerSubmit');
+      submit.textContent = 'Register';
     } else {
-      submit.textContent = t('auth.loginSubmit');
+      submit.textContent = 'Log in';
     }
   }
 }
@@ -230,7 +232,8 @@ export function handleExpiredSession() {
   logout();
 
   openAuth('login');
-  setAuthMessage(t('auth.sessionExpired'), 'error');
+
+  setAuthMessage('Your session expired. Please log in again.', 'error');
 }
 
 export function openProfile() {
@@ -239,12 +242,15 @@ export function openProfile() {
   }
 
   $('profile-username').value = state.user.username || '';
+
   $('profile-email').value = state.user.email || '';
+
   $('profile-password').value = '';
 
   $('profile-avatar').src = resolveAvatar(state.user.avatar);
 
   setMessage('profile-message', '', '');
+
   setMessage('avatar-message', '', '');
 
   $('profile-dialog').showModal();
@@ -265,8 +271,11 @@ export async function handleProfileSubmit(event) {
   }
 
   const username = $('profile-username').value.trim();
+
   const email = $('profile-email').value.trim();
+
   const password = $('profile-password').value;
+
   const submit = $('profile-submit');
 
   const fields = {};
@@ -284,7 +293,8 @@ export async function handleProfileSubmit(event) {
   }
 
   if (Object.keys(fields).length === 0) {
-    setMessage('profile-message', t('profile.saved'), 'ok');
+    setMessage('profile-message', 'Profile updated.', 'ok');
+
     return;
   }
 
@@ -292,6 +302,7 @@ export async function handleProfileSubmit(event) {
 
   try {
     const response = await updateUser(fields, state.token);
+
     const updated = (response && response.data) || {};
 
     state.user = {
@@ -299,17 +310,9 @@ export async function handleProfileSubmit(event) {
       ...updated,
     };
 
-    if (fields.username) {
-      state.user.username = fields.username;
-    }
-
-    if (fields.email) {
-      state.user.email = fields.email;
-    }
-
     updateAccountUI();
 
-    setMessage('profile-message', t('profile.saved'), 'ok');
+    setMessage('profile-message', 'Profile updated.', 'ok');
 
     $('profile-password').value = '';
   } catch (error) {
@@ -320,7 +323,7 @@ export async function handleProfileSubmit(event) {
 
     setMessage(
       'profile-message',
-      error.message || t('profile.saveFailed'),
+      error.message || 'Could not update profile.',
       'error'
     );
   } finally {
@@ -337,20 +340,21 @@ export async function handleAvatarUpload() {
   const file = input.files && input.files[0];
 
   if (!file) {
-    setMessage('avatar-message', t('profile.avatarChoose'), 'error');
+    setMessage('avatar-message', 'Please choose an image first.', 'error');
+
     return;
   }
 
   const button = $('avatar-upload-btn');
 
-  button.disabled = true;
-
   const original = button.textContent;
 
-  button.textContent = t('profile.uploading');
+  button.disabled = true;
+  button.textContent = 'Uploading...';
 
   try {
     const response = await uploadAvatar(file, state.token);
+
     const avatar = response && response.data && response.data.avatar;
 
     if (avatar) {
@@ -360,9 +364,9 @@ export async function handleAvatarUpload() {
 
       updateAccountUI();
 
-      setMessage('avatar-message', t('profile.avatarUploaded'), 'ok');
+      setMessage('avatar-message', 'Profile picture updated.', 'ok');
     } else {
-      setMessage('avatar-message', t('profile.avatarFailed'), 'error');
+      setMessage('avatar-message', 'Could not upload picture.', 'error');
     }
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
@@ -372,7 +376,7 @@ export async function handleAvatarUpload() {
 
     setMessage(
       'avatar-message',
-      error.message || t('profile.avatarFailed'),
+      error.message || 'Could not upload picture.',
       'error'
     );
   } finally {

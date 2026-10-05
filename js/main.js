@@ -1,16 +1,10 @@
-import {state, setLang} from './state.js';
-import {applyStaticTranslations, t} from './i18n.js';
-
 import {
   loadRestaurants,
-  renderList,
   setFilter,
   clearFilters,
   setMenuMode,
   startFindNearest,
 } from './restaurants.js';
-
-import {loadMenu} from './menu.js';
 
 import {
   restoreSession,
@@ -41,44 +35,13 @@ function hideBanner() {
 
 function locationNotify(text, kind) {
   showBanner(text, kind);
-  setTimeout(hideBanner, 5000);
-}
 
-function showOfflineBanner() {
-  showBanner(t('conn.offline'), 'error');
-}
-
-function switchLanguage(lang) {
-  if (lang === state.lang) {
-    return;
-  }
-
-  setLang(lang);
-
-  applyLangButtons();
-  applyStaticTranslations();
-  renderList();
-
-  if (state.selectedId) {
-    loadMenu();
-  }
-
-  updateAccountUI();
-}
-
-function applyLangButtons() {
-  document.querySelectorAll('.lang-btn').forEach((button) => {
-    button.classList.toggle('active', button.dataset.lang === state.lang);
-  });
+  setTimeout(() => {
+    hideBanner();
+  }, 5000);
 }
 
 function wireEvents() {
-  document.querySelectorAll('.lang-btn').forEach((button) => {
-    button.addEventListener('click', () => {
-      switchLanguage(button.dataset.lang);
-    });
-  });
-
   $('open-login').addEventListener('click', () => {
     openAuth('login');
   });
@@ -101,11 +64,13 @@ function wireEvents() {
 
   $('favourite-btn').addEventListener('click', toggleFavourite);
 
-  document.querySelectorAll('[data-close-dialog]').forEach((button) => {
+  const closeButtons = document.querySelectorAll('[data-close-dialog]');
+
+  for (const button of closeButtons) {
     button.addEventListener('click', () => {
       button.closest('dialog').close();
     });
-  });
+  }
 
   $('search-input').addEventListener('input', (event) => {
     setFilter('search', event.target.value);
@@ -141,17 +106,13 @@ function wireEvents() {
       behavior: 'smooth',
     });
   });
-
-  document.addEventListener('sfh:offline', showOfflineBanner);
 }
 
 async function init() {
-  applyLangButtons();
-  applyStaticTranslations();
   wireEvents();
   updateAccountUI();
 
-  await loadRestaurants();
+  await loadRestaurants(showBanner);
   await restoreSession();
 }
 
